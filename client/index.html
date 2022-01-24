@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>TO DO</title>
+</head>
+
+<style>
+    body, h1, .todos {
+        margin: 0;
+        padding: 0;
+        font-family: sans-serif, Verdana, Helvetica;
+    }
+
+    body {
+        background-color: turquoise;
+    }
+
+    h1 {
+        margin-top: 50px;
+        text-align: center;
+    }
+
+    .todos {
+        text-align: center;
+    }
+
+    .todo {
+        border: 2px turquoise solid;
+        border-radius: 10px;
+        margin: 15px auto;
+        padding-bottom: 10px;
+        width: 400px;
+        background-color: white;
+    }
+
+    .done, .cancle {
+        font-weight: bolder;
+        text-decoration: none;
+    }
+
+    .done {
+        color: blue;
+    }
+
+    .cancle {
+        color: red;
+    }
+
+    .strike {
+        text-decoration: line-through;
+    }
+
+    input[type="text"], input[type="submit"] {
+        border-radius: 10px;
+        border: none;
+        display: block;
+        margin: 5px auto;
+    }
+
+    input[type="text"] {
+        width: 400px;
+        height: 40px;
+    }
+
+    input[type="submit"] {
+        width: 70px;
+        height: 40px;
+        font-weight: 900;
+        display: inline;
+    }
+    
+</style>
+
+<body>
+    <h1>TO DO</h1>
+
+    <div>
+        <input type="text" id="new-task" placeholder="Add new todo"/>
+        
+        <div style="text-align: center;">
+            <input type="submit" value="Add" id="add">
+            <input type="submit" value="Refresh" id="refresh">
+        </div>
+    </div>
+
+    <div class="todos">
+        <!-- <div class="todo">
+            <h2>Go to the saloon</h2>
+
+            <a class="done" href="#34" id="34">
+                Done
+            </a>
+
+            <a href="#" class="cancle" id="34">
+                Cancle
+            </a>        
+        </div> -->
+
+
+
+    </div>
+
+    <script>
+        let todosDiv = document.querySelector(".todos");
+        let todoItems = {};
+
+        renderTodoItems = () => {
+        // <div class="todo">
+        //     <h2>Go to the saloon</h2>
+
+        //     <a class="done">
+        //         Done
+        //     </a>
+
+        //     <a href="#" class="cancle">
+        //         Cancle
+        //     </a>        
+        // </div>
+        todosDiv.innerHTML = ''; //clear todos before re-rendering
+
+        for (let idx in todoItems) {
+            //outer div
+
+            let todoDiv = document.createElement("div")
+            todoDiv.classList.add('todo')
+
+            //description
+            let todoDescription = document.createElement('h2');
+            todoDescription.textContent = todoItems[idx].description;
+
+            //done link
+            let todoDoneLink = document.createElement('a');
+            todoDoneLink.classList.add('done');
+            todoDoneLink.setAttribute('id', idx);
+            todoDoneLink.setAttribute('href', '#'+idx);
+            todoDoneLink.textContent = 'Done';
+            todoDoneLink.style.marginRight = '15px';
+
+            //cancle link
+            let todoCancleLink = document.createElement('a');
+            todoCancleLink.classList.add('cancle');
+            todoCancleLink.setAttribute('id', idx);
+            todoDoneLink.setAttribute('href', '#');
+            todoCancleLink.textContent = 'Cancle';
+
+            //strike out done todos
+            if (todoItems[idx].status) {
+                todoDescription.classList.add('strike')
+                todoDoneLink.textContent = 'Undo';
+            }
+
+            todoDiv.appendChild(todoDescription);
+            todoDiv.appendChild(todoDoneLink);
+            todoDiv.appendChild(todoCancleLink);
+
+            todosDiv.appendChild(todoDiv)
+        }
+    }
+
+    getAllTodos = () => {
+        var xhr = new XMLHttpRequest()
+
+        xhr.open('GET', "/todos")
+
+        xhr.onreadystatechange = function() {
+            if(xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+                todoItems = JSON.parse(xhr.responseText);                   
+                renderTodoItems();
+            };
+        };
+        xhr.send();
+    };
+    getAllTodos();
+
+    todosDiv.addEventListener('click', (evt) => {
+        console.log(evt.target.id, evt.target.textContent);
+
+        var xhr = new XMLHttpRequest()
+
+        xhr.open('PUT', '/todos')
+
+        xhr.send(evt.target.id + " " + evt.target.textContent);
+
+        xhr.onreadystatechange = function() {
+            if(xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+                // alert(xhr.responseText);                   
+                getAllTodos();
+            };
+        };
+    })
+
+    document.querySelector('#add').addEventListener('click', () => {
+
+        let description = document.querySelector('#new-task').value;
+        if ((description.length < 3) || description == 'Add new todo') {
+            alert("Enter a task to do");
+            return
+        };
+
+        var xhr = new XMLHttpRequest()
+
+        xhr.open('POST', '/todos')
+
+        xhr.send(JSON.stringify({
+            description: description,
+        }));
+
+        document.querySelector('#new-task').value = '';
+
+        xhr.onreadystatechange = function() {
+            if(xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+                // alert(xhr.responseText);                   
+                getAllTodos();
+            };
+        };
+    })
+
+    document.querySelector('#refresh').addEventListener('click', () => {
+
+        var xhr = new XMLHttpRequest()
+
+        xhr.open('DELETE', '/todos')
+
+        xhr.send();
+        xhr.onreadystatechange = function() {
+            if(xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+                // alert(xhr.responseText);                   
+                getAllTodos();
+            };
+        };
+    })
+    </script>
+</body>
+</html>
