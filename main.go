@@ -17,7 +17,7 @@ type todo struct {
 	Status      bool   `json:"status"`
 }
 
-var todos = map[int]todo{}
+var todos = map[int]todo{} // in memory database
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
